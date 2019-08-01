@@ -1,6 +1,9 @@
 pragma solidity ^0.5.0;
 
-contract Election {
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+
+/** @title Election **/
+contract Election is Ownable {
 
     // voter fields
     struct Voter {
@@ -16,6 +19,14 @@ contract Election {
         uint voteCount;
     }
 
+    bool private stopped = false;
+    function toggleContractActive() onlyOwner public {
+        stopped = !stopped;
+    }
+
+    modifier stopInEmergency { if (!stopped) _; }
+    modifier onlyInEmergency { if (stopped) _; }
+
     // will change to uPort identification later
     mapping (address => Voter) public voters;
     mapping (address => bool) public voterRegistrations;
@@ -29,32 +40,35 @@ contract Election {
     event LogCandidateAdded(string name, uint candidateId);
     event LogEndElection(uint candidateId);
 
-    modifier isOwner() {require (msg.sender == owner); _;}
-
-    // store organizer information
-    address public owner;
-    uint public voterIdGenerator;
-    uint public candidateIdGenerator;
+    uint public voterCount;
+    uint public candidateCount;
 
     constructor () public {
-        owner = msg.sender;
-        voterIdGenerator = 0;     // no 0th voter
-        candidateIdGenerator = 0; // 0 counts as a spoiled vote for now
+        voterCount = 0;     // no 0th voter
+        candidateCount = 0; // 0 counts as a spoiled vote for now
     }
 
     
-    // for now, anyone can participate until the organizer closes this
+    /** @dev Adds a voter to the list of registered ones
+      * @param _name Name of voter
+      * @return _id Id of voter in the registration array
+      */
     function addVoter(string memory _name) public returns (uint) {
-        uint _voterId = voterIdGenerator;
+        uint _voterId = voterCount;
         address _addr = msg.sender;
         voters[_addr] = Voter({name: _name,
                                voterId: _voterId,
                                candidateId: NUM_CANDIDATES_MAX});
-        voterIdGenerator++;
+        voterCount++;
         emit LogVoterAdded(_name, _voterId);
         return _voterId;
     }
 
+    /** @dev Reads voter from the list of registered ones
+      * @return name Name of voter
+      * @return voterId Id of voter
+      * @return candidateId Id of candidate voted for by voter (to be encrypted)
+      */
     function readVoter() public view 
         returns (string memory name, uint voterId, uint candidateId) {
         address _addr = msg.sender;
@@ -65,21 +79,30 @@ contract Election {
     }
 
 
-    // for now, anyone can participate
+    /** @dev Adds a candidate to the list of registered ones
+      * @param _name Name of candidate to be displayed
+      * @return _id Id of candidate in the registration array
+      */
     function addCandidate(string memory _name) public
         returns (uint) {
         require (candidateRegistrations[msg.sender] == false);    
-        require (candidateIdGenerator < NUM_CANDIDATES_MAX, "No more candidates allowed");
-        uint _candidateId = candidateIdGenerator;
+        require (candidateCount < NUM_CANDIDATES_MAX, "No more candidates allowed");
+        uint _candidateId = candidateCount;
         address _addr = msg.sender;
         candidates[_candidateId] = Candidate({addr: _addr,
                                               name: _name,
                                               voteCount: 0});
-        candidateIdGenerator++;
-        return _candidateId;
+        candidateCount++;
         emit LogCandidateAdded(_name, _candidateId);
+        return _candidateId;
     }
 
+    /** @dev Reads candidate from the list of registered ones
+      * @param _id Id of candidate in the registration array
+      * @return addr Ethereum address of candidate
+      * @return name Name of candidate
+      * @return voteCount Number of votes for this candidate
+      */
     function readCandidate(uint _id) public view 
         returns (address addr, string memory name, uint voteCount) {
         addr = candidates[_id].addr;
@@ -88,44 +111,40 @@ contract Election {
         return (addr, name, voteCount);
     }
 
-
-    function getCandidateCount() public view returns (uint candidateCount) {
-        return candidateIdGenerator;
-    }
-    
-    function getVoterCount() public view returns (uint voterCount) {
-        return voterIdGenerator;
+    function getNumCandidatesMax() public view returns (uint) {
+        return NUM_CANDIDATES_MAX;
     }
 
-    
-    function getCandidateVoteCount(uint id) external
-        view returns (uint){
-        return candidates[id].voteCount;
-    }
-    
-    function castVote(uint voterId, uint candidateId) external {
+    /** @dev Allows voter with voterId to cast a vote
+      * @param voterId Id of voter
+      * @return candidateId Id of candidate they are voting for
+      */ 
+    function castVote(uint voterId, uint candidateId) stopInEmergency external {
         require (voters[msg.sender].voterId == voterId);
         require (voters[msg.sender].candidateId == NUM_CANDIDATES_MAX, "Voter has already voted");
-        require (candidateId < candidateIdGenerator, "invalid candidate");
+        require (candidateId < candidateCount, "invalid candidate");
         candidates[candidateId].voteCount++;
         voters[msg.sender].candidateId = candidateId;
         emit LogVoterVoted(voterId, candidateId);
     }
 
- 
-    function recallVote(uint voterId, uint candidateId) external {
+     /** @dev Allows voter with voterId to recall a vote
+      * @param voterId Id of voter
+      * @return candidateId Id of candidate for whom they are recalling a vote
+      */ 
+    function recallVote(uint voterId, uint candidateId) stopInEmergency external {
         require (voters[msg.sender].voterId == voterId);
         require (voters[msg.sender].candidateId < NUM_CANDIDATES_MAX, "Voter has not yet voted");
-        require (candidateId < candidateIdGenerator, "invalid candidate");
+        require (candidateId < candidateCount, "invalid candidate");
         candidates[candidateId].voteCount--;
         voters[msg.sender].candidateId = NUM_CANDIDATES_MAX;
         emit LogVoterRecalledVote(voterId, candidateId);
     }
 
 
-    function endElection() public view returns (uint winnerId) {
+    function endElection() onlyOwner public view returns (uint winnerId) {
         uint winningVoteCount = 0;
-        for (uint i = 0; i < candidateIdGenerator; i++) {
+        for (uint i = 0; i < candidateCount; i++) {
             if (candidates[i].voteCount > winningVoteCount){
                 winningVoteCount = candidates[i].voteCount;
                 winnerId = i;
@@ -134,4 +153,8 @@ contract Election {
         return winnerId;
     }
 
+    function kill() onlyOwner public {
+        selfdestruct(address(uint160(owner())));
+    }
 }
+
