@@ -4,6 +4,12 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <title>Election App</title>
 
@@ -57,13 +63,26 @@
             <p class="text-center">Loading...</p>
           </div>
           <div id="content">
+            <form onSubmit="App.addVoter(); return false;">
+            <input id="voterName" type="text" class="form-control" placeholder="Add voter..." required>
+            <input type="submit" hidden="">
+            </form>
+            <ul id="voterInformation" class="list-unstyled">
+              <div class="voterTemplate" class="checkbox" style="display: none">
+                <label>
+                  <span class="content">Voter information goes here...</span>
+                </label>
+              </div>
+            </ul>
+            <hr>
             <form onSubmit="App.addCandidate(); return false;">
             <input id="candidateName" type="text" class="form-control" placeholder="Add candidate..." required>
             <input type="submit" hidden="">
+            </form>
             <ul id="candidateList" class="list-unstyled">
               <div class="candidateTemplate" class="checkbox" style="display: none">
                 <label>
-                  <input type="checkbox" />
+                    <input type="checkbox" />  
                   <span class="content">Candidate information goes here...</span>
                 </label>
               </div>
@@ -71,9 +90,10 @@
             <ul id="winningCandidateList" class="list-unstyled">
             </ul>
           </div>
-        </main>
+       </main>
       </div>
     </div>
+
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
@@ -83,3 +103,4 @@
     <script src="app.js"></script>
   </body>
 </html>
+

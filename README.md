@@ -1,7 +1,15 @@
 
 # Election app
 
-This election app demostrates running an election on the Etherum blockchain
+This election app demostrates running an election on the Etherum blockchain.
+The main contract implemented is at `/contracts/Election.sol`
+The tests are at `/tests/election.test.js`
+The web interface is at `/src/index.html`, with the necessary logic
+in `/src/app.js`
+
+Unfortunately there was not enough time to make the web interface fully
+functional, and I did not get as far as I would have liked to with
+the uPort authentication, so this version still does not have it.
 
 
 ## Installation

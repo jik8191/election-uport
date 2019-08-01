@@ -11,9 +11,8 @@ contract('Election', function(accounts) {
   const charlie = accounts[5]
   const david = accounts[6]
   
-  var NUM_CANDIDATES_MAX
+  const NUM_CANDIDATES_MAXi = 2
 
-  let instance
 
   beforeEach(async () => {
     instance = await Election.new()
@@ -23,15 +22,15 @@ contract('Election', function(accounts) {
     await instance.addVoter("Bob", {from: bob})
     await instance.addVoter("Charlie", {from: charlie})
     await instance.addVoter("David", {from: david})
-    NUM_CANDIDATES_MAX = await instance.getNumCandidatesMax()
+    // NUM_CANDIDATES_MAX = await instance.getNumCandidatesMax({from: chairperson})
   })
 
   it("should correctly count the number of candidates and voters", async () =>{
     const expectedVoterCount = 4
-    const voterCount = await instance.voterCount()
-    assert.equal(expectedVoterCount, voterCount, "Incorrect number of candidates");
+    const voterCount = await instance.getVoterCount({from: chairperson})
+    assert.equal(expectedVoterCount, voterCount, "Incorrect number of voters");
     const expectedCandidateCount = 2
-    const candidateCount = await instance.candidateCount()
+    const candidateCount = await instance.getCandidateCount({from: chairperson})
     assert.equal(expectedCandidateCount, candidateCount, "Incorrect number of candidates");
   })
 

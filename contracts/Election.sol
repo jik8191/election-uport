@@ -111,6 +111,15 @@ contract Election is Ownable {
         return (addr, name, voteCount);
     }
 
+    function getVoterCount() public view returns (uint) {
+        return voterCount;
+    }
+
+
+    function getCandidateCount() public view returns (uint) {
+        return candidateCount;
+    }
+
     function getNumCandidatesMax() public view returns (uint) {
         return NUM_CANDIDATES_MAX;
     }

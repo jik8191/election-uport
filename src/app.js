@@ -72,6 +72,9 @@ App = {
     // Render account
     $('#account').html(App.account)
   
+    // Render voter
+    await App.renderVoter()
+
     // Render Candidates
     await App.renderCandidates()
         
@@ -79,13 +82,21 @@ App = {
     App.setLoading(false)
   },
 
+  renderVoter: async () => {
+    const $voterTemplate = $('.voterTemplate')
+    const voter = await App.election.readVoter()
+    console.log(voter)
+    const voterName = voter[0]
+    $voterTemplate.find('.content').html(voterName)
+    $('#voterInformation').append($voterTemplate)
+    $voterTemplate.show()
+  },
+
   renderCandidates: async () => {
     // Load the total candidate count from the blockchain
-    const candidateCount = await App.election.candidateIdGenerator()
-    const candidateCount2 = await App.election.getCandidateCount()
+    const candidateCount = await App.election.getCandidateCount()
       
     console.log(candidateCount)
-    console.log(candidateCount2)
     const $candidateTemplate = $('.candidateTemplate')
 
     // Render out each candidate with a new candidate template
@@ -126,7 +137,15 @@ App = {
     const candidateName = $('#candidateName').val()
     await App.election.addCandidate(candidateName)
     window.location.reload()
+  },
+
+  addVoter: async () => {
+    App.setLoading(true)
+    const voterName = $('#voterName').val()
+    await App.election.addVoter(voterName)
+    window.location.reload()
   }
+
 
 
 }
