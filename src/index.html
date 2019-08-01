@@ -57,6 +57,9 @@
             <p class="text-center">Loading...</p>
           </div>
           <div id="content">
+            <form onSubmit="App.addCandidate(); return false;">
+            <input id="candidateName" type="text" class="form-control" placeholder="Add candidate..." required>
+            <input type="submit" hidden="">
             <ul id="candidateList" class="list-unstyled">
               <div class="candidateTemplate" class="checkbox" style="display: none">
                 <label>

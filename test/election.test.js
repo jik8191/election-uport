@@ -22,14 +22,22 @@ contract('Election', function(accounts) {
     await instance.addVoter("David", {from: david})
   })
 
-
+  it("should correctly count the number of candidates and voters", async () =>{
+    const expectedVoterCount = 4
+    const voterCount = await instance.getVoterCount()
+    assert.equal(expectedVoterCount, voterCount, "Incorrect number of candidates");
+    const expectedCandidateCount = 2
+    const candidateCount = await instance.getCandidateCount()
+    assert.equal(expectedCandidateCount, candidateCount, "Incorrect number of candidates");
+  })
+ 
   it("should correctly determine the winner of the election", async () => {
-    await instance.castVote(1, 1, {from: alice})
-    await instance.castVote(2, 1, {from: bob})
-    await instance.castVote(3, 2, {from: charlie})
-    await instance.castVote(4, 2, {from: david})
-    await instance.recallVote(4, 2, {from: david})
-    const expectedWinnerId = 1
+    await instance.castVote(0, 0, {from: alice})
+    await instance.castVote(1, 0, {from: bob})
+    await instance.castVote(2, 1, {from: charlie})
+    await instance.castVote(3, 1, {from: david})
+    await instance.recallVote(3, 1, {from: david})
+    const expectedWinnerId = 0
     const winnerId = await instance.endElection({from: chairperson})
     assert.equal(expectedWinnerId, winnerId, "Winner not correctly determined");
   })
